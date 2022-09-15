@@ -31,6 +31,26 @@ namespace RPGProject.Services.CharacterService
             return serviceResponse;
         }
 
+        // TODO: Don't return list. Just return a 201.
+        public async Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int id)
+        {
+            ServiceResponse<List<GetCharacterDto>> response = new ServiceResponse<List<GetCharacterDto>>();
+
+            try 
+            {
+                Character character = characters.First(c => c.Id == id);
+                characters.Remove(character);
+                response.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
+            }
+            catch(Exception exc)
+            {
+                response.Success = false;
+                response.Message = exc.Message;
+            }
+
+            return response;
+        }
+
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
         {
             return new ServiceResponse<List<GetCharacterDto>> { Data = characters.Select(c=> _mapper.Map<GetCharacterDto>(c)).ToList() };
@@ -42,6 +62,31 @@ namespace RPGProject.Services.CharacterService
             var character = characters.FirstOrDefault(c => c.Id == id);
             serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
             return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<GetCharacterDto>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
+        {
+            ServiceResponse<GetCharacterDto> response = new ServiceResponse<GetCharacterDto>();
+
+            try {
+            Character character = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id);
+
+            //_mapper.Map(updatedCharacter, character);
+            character.HitPoints = updatedCharacter.HitPoints;
+            character.Strength = updatedCharacter.Strength;
+            character.Dexterity = updatedCharacter.Dexterity;
+            character.Intelligence = updatedCharacter.Intelligence;
+            character.Vitality = updatedCharacter.Vitality;
+
+            response.Data = _mapper.Map<GetCharacterDto>(character);
+            }
+            catch(Exception exc)
+            {
+                response.Success = false;
+                response.Message = exc.Message;
+            }
+
+            return response;
         }
     }
 }
