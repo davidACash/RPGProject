@@ -16,5 +16,10 @@ namespace RPGProject.Models
         public int Vitality { get; set; } = 10;
         public CharacterClass Class { get; set; } = CharacterClass.Warrior;
         public User? User { get; set; }
+        public Weapon Weapon { get; set; }
+        public List<Skill> Skills { get; set; }
+        public int Fights { get; set; }
+        public int Victories { get; set; }
+        public int Defeats { get; set; }
     }
 }

@@ -28,18 +28,37 @@ namespace RPGProject.Services.CharacterService
         public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto newCharacter)
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-            Character character = _mapper.Map<Character>(newCharacter);
-            character.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
-            _context.Characters.Add(character);
-            await _context.SaveChangesAsync();
-            serviceResponse.Data = await _context.Characters.Where(c => c.User.Id == GetUserId()).Select(c=> _mapper.Map<GetCharacterDto>(c)).ToListAsync();
+            try
+            {
+                Character character = _mapper.Map<Character>(newCharacter);
+                character.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
+                if(character.User != null)
+                {
+                    _context.Characters.Add(character);
+                    await _context.SaveChangesAsync();
+                    serviceResponse.Data = await _context.Characters.Where(c => c.User.Id == GetUserId()).Select(c=> _mapper.Map<GetCharacterDto>(c)).ToListAsync();
+                }
+                else
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "User not found.";
+                }
+            }
+            catch(Exception exc)
+            {
+                serviceResponse.Success = false;
+                serviceResponse.Message = exc.Message;
+                serviceResponse.InnerExceptionMessage = string.IsNullOrEmpty(exc.InnerException.Message) ? string.Empty : exc.InnerException.Message;
+            }
+            
+            
             return serviceResponse;
         }
 
         // TODO: Don't return list. Just return a 201.
         public async Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int id)
         {
-            ServiceResponse<List<GetCharacterDto>> response = new ServiceResponse<List<GetCharacterDto>>();
+            var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
 
             try 
             {
@@ -48,46 +67,88 @@ namespace RPGProject.Services.CharacterService
                 {
                     _context.Characters.Remove(character);
                     await _context.SaveChangesAsync();
-                    response.Data = await _context.Characters.Where(c => c.User.Id == GetUserId()).Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
+                    serviceResponse.Data = await _context.Characters.Where(c => c.User.Id == GetUserId()).Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
                 }
                 else
                 {
-                    response.Success = false;
-                    response.Message = "Character not found.";
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "Character not found.";
                 }
             }
             catch(Exception exc)
             {
-                response.Success = false;
-                response.Message = exc.Message;
+                serviceResponse.Success = false;
+                serviceResponse.Message = exc.Message;
+                serviceResponse.InnerExceptionMessage = string.IsNullOrEmpty(exc.InnerException.Message) ? string.Empty : exc.InnerException.Message;
             }
 
-            return response;
+            return serviceResponse;
         }
 
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
         {
-            var response = new ServiceResponse<List<GetCharacterDto>>();
-            response.Data = await _context.Characters.Where(c => c.User.Id == GetUserId()).Select(c=> _mapper.Map<GetCharacterDto>(c)).ToListAsync();
-            return response;
+            var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
+            serviceResponse.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
+            return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<List<GetCharacterDto>>> GetUsersCharacters()
+        {
+            var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
+            serviceResponse.Data = await _context.Characters.Where(c => c.User.Id == GetUserId()).Select(c=> _mapper.Map<GetCharacterDto>(c)).ToListAsync();
+            return serviceResponse;
         }
 
         public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
         {
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
-            var dbCharacter = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserId());
+            var dbCharacter = await _context.Characters
+                .Include(c => c.Weapon)
+                .Include(c => c.Skills)
+                .FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserId());
             serviceResponse.Data = _mapper.Map<GetCharacterDto>(dbCharacter);
+            return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<List<GetCharacterDto>>> GetOpponents(int id)
+        {
+            var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
+            try
+            {
+                var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id);
+                if(character != null)
+                {
+                    serviceResponse.Data = await _context.Characters.Where(c => c.Id != id).Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
+                    if(serviceResponse.Data == null)
+                    {
+                        serviceResponse.Success = false;
+                        serviceResponse.Message = "No opponents found.";
+                    }
+                }
+                else
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "Character not found.";
+                }
+            }
+            catch(Exception exc)
+            {
+                serviceResponse.Success = false;
+                serviceResponse.Message = exc.Message;
+                serviceResponse.InnerExceptionMessage = string.IsNullOrEmpty(exc.InnerException.Message) ? string.Empty : exc.InnerException.Message;
+            }
+            
             return serviceResponse;
         }
 
         public async Task<ServiceResponse<GetCharacterDto>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
         {
-            ServiceResponse<GetCharacterDto> response = new ServiceResponse<GetCharacterDto>();
+            var serviceResponse = new ServiceResponse<GetCharacterDto>();
 
             try {
-                var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id && c.User.Id == GetUserId());
+                var character = await _context.Characters.Include(c => c.User).FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id && c.User.Id == GetUserId());
 
-                if(character != null)
+                if(character != null && character.User.Id == GetUserId())
                 {
                     character.HitPoints = updatedCharacter.HitPoints;
                     character.Strength = updatedCharacter.Strength;
@@ -97,21 +158,22 @@ namespace RPGProject.Services.CharacterService
 
                     await _context.SaveChangesAsync();
 
-                    response.Data = _mapper.Map<GetCharacterDto>(character);
+                    serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
                 }
                 else
                 {
-                    response.Success = false;
-                    response.Message = "Character not found.";
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "Character not found.";
                 }
             }
             catch(Exception exc)
             {
-                response.Success = false;
-                response.Message = exc.Message;
+                serviceResponse.Success = false;
+                serviceResponse.Message = exc.Message;
+                serviceResponse.InnerExceptionMessage = string.IsNullOrEmpty(exc.InnerException.Message) ? string.Empty : exc.InnerException.Message;
             }
 
-            return response;
+            return serviceResponse;
         }
     }
 }
