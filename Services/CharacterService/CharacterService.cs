@@ -55,7 +55,7 @@ namespace RPGProject.Services.CharacterService
             return serviceResponse;
         }
 
-        // TODO: Don't return list. Just return a 201.
+
         public async Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int id)
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();

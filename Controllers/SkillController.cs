@@ -22,6 +22,11 @@ namespace RPGProject.Controllers
             _skillService = skillService;
         }
 
+        /// <summary>
+        /// Adds a skill to the player's current character.
+        /// </summary>
+        /// <param name="newCharacterSkill"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<ActionResult<ServiceResponse<GetCharacterDto>>> AddCharacterSkill(AddCharacterSkillDto newCharacterSkill)
         {

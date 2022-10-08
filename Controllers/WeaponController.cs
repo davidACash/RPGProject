@@ -22,6 +22,11 @@ namespace RPGProject.Controllers
             _weaponService = weaponService;
         }
 
+        /// <summary>
+        /// Adds a weapon to the player's current character.
+        /// </summary>
+        /// <param name="newWeapon"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<ActionResult<ServiceResponse<GetCharacterDto>>> AddWeapon(AddWeaponDto newWeapon)
         {

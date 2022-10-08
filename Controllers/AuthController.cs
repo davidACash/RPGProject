@@ -19,6 +19,11 @@ namespace RPGProject.Controllers
             _authService = authService;
         }
 
+        /// <summary>
+        /// Allows a new player to register.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("register")]
         public async Task<ActionResult<ServiceResponse<int>>> Register(UserRegisterDto request)
         {
@@ -32,6 +37,11 @@ namespace RPGProject.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Allows a player to login.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("login")]
         public async Task<ActionResult<ServiceResponse<string>>> Login(UserLoginDto request)
         {

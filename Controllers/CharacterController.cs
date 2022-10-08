@@ -16,12 +16,15 @@ namespace RPGProject.Controllers
     public class CharacterController : ControllerBase
     {
         private readonly ICharacterService _characterService;
+
         public CharacterController(ICharacterService characterService)
         {
             _characterService = characterService;
-
         }
 
+        /// <summary>
+        /// Get all characters in the game.
+        /// </summary>
         [HttpGet("GetAllCharacters")]
         public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> GetAllCharacters()
         {
@@ -33,6 +36,10 @@ namespace RPGProject.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Only returns the characters belonging to the player.
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("GetUsersCharacters")]
         public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> GetUsersCharacters()
         {
@@ -44,6 +51,11 @@ namespace RPGProject.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Returns the player's selected character.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<ServiceResponse<GetCharacterDto>>> GetCharacter(int id)
         {
@@ -55,6 +67,11 @@ namespace RPGProject.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Returns all available opponents for the player's character to fight.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("GetOpponents")]
         public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> GetOpponents(int id)
         {
@@ -66,6 +83,11 @@ namespace RPGProject.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Creates and adds a new character tied to the player's account.
+        /// </summary>
+        /// <param name="newCharacter"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> AddCharacter(AddCharacterDto newCharacter)
         {;
@@ -77,6 +99,11 @@ namespace RPGProject.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Updates the character's attributes.
+        /// </summary>
+        /// <param name="updatedCharacter"></param>
+        /// <returns></returns>
         [HttpPut]
         public async Task<ActionResult<ServiceResponse<GetCharacterDto>>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
         {
@@ -88,6 +115,11 @@ namespace RPGProject.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Deletes a player's character.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("{id}")]
         public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> DeleteCharacter(int id)
         {
